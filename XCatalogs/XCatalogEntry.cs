@@ -53,11 +53,29 @@ namespace XCatalogs
             var timestamp = int.Parse(timestampGroup.Value);
             var checksum = checksumGroup.Value;
 
-            var date = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).DateTime;
+            var date = DateTimeOffset.FromUnixTimeSeconds(timestamp).DateTime;
 
             Path = lineMatch.Groups["path"].Value;
             Date = date;
             Data = ReadData(dataStream, length);
+        }
+
+        private string GetDataChecksum()
+        {
+            if (Data.Length == 0)
+            {
+                return new string('0', 32);
+            }
+            else
+            {
+                string result;
+                using (var md5 = MD5.Create())
+                {
+                    result = StringUtils.BytesToHex(md5.ComputeHash(Data));
+                }
+
+                return result;
+            }
         }
 
         public string GetHeaderText()
@@ -68,8 +86,8 @@ namespace XCatalogs
                     "{0} {1} {2} {3}",
                     Path,
                     Data.Length,
-                    ((DateTimeOffset)Date).ToUnixTimeMilliseconds(),
-                    StringUtils.BytesToHex(md5.ComputeHash(Data))
+                    ((DateTimeOffset)Date).ToUnixTimeSeconds(),
+                    GetDataChecksum()
                 );
             }
         }

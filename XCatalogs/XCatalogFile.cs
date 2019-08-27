@@ -30,6 +30,11 @@ namespace XCatalogs
             }
         }
 
+        public XCatalogFile()
+        {
+
+        }
+
         public XCatalogFile(Stream catStream, Stream datStream)
         {
             InitFromStreams(catStream, datStream);
@@ -55,18 +60,20 @@ namespace XCatalogs
             {
                 catWriter.WriteLine(catLine);
             }
+            catWriter.Flush();
 
             foreach (var entry in Entries)
             {
                 datWriter.Write(entry.Data);
             }
+            datWriter.Flush();
         }
 
         public void Write(string catPath, string datPath)
         {
-            using (var catStream = File.Open(catPath, FileMode.Open))
+            using (var catStream = File.Open(catPath, FileMode.Create))
             {
-                using (var datStream = File.Open(datPath, FileMode.Open))
+                using (var datStream = File.Open(datPath, FileMode.Create))
                 {
                     Write(catStream, datStream);
                 }
