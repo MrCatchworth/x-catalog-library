@@ -11,7 +11,7 @@ namespace XCatalogs
     {
         public static readonly Regex CatLineRegex = new Regex(@"(?<path>^.+) +(?<length>\d+) +(?<timestamp>\d+) +(?<checksum>[abcdef0-9]{32})$");
 
-        public string Path {get; set;}
+        public string FilePath {get; set;}
         public DateTime Date {get; set;}
         public byte[] Data {get; set;}
 
@@ -29,7 +29,7 @@ namespace XCatalogs
 
         public XCatalogEntry(string path, DateTime date, IEnumerable<byte> data)
         {
-            Path = path;
+            FilePath = path;
             Date = date;
             Data = data.ToArray();
         }
@@ -55,9 +55,26 @@ namespace XCatalogs
 
             var date = DateTimeOffset.FromUnixTimeSeconds(timestamp).DateTime;
 
-            Path = lineMatch.Groups["path"].Value;
+            FilePath = lineMatch.Groups["path"].Value;
             Date = date;
             Data = ReadData(dataStream, length);
+        }
+
+        public XCatalogEntry(string inputPath)
+        {
+            var file = new FileInfo(inputPath);
+            var inputDirectoryPath = Path.GetDirectoryName(Path.GetFullPath(inputPath));
+
+            if (Directory.GetCurrentDirectory().StartsWith(inputDirectoryPath))
+            {
+                throw new ArgumentException("File must not be outside the current directory");
+            }
+
+            var inputRelativePath = Path.GetRelativePath(".", inputPath);
+
+            FilePath = inputRelativePath;
+            Date = file.LastWriteTime;
+            Data = File.ReadAllBytes(inputPath);
         }
 
         private string GetDataChecksum()
@@ -84,7 +101,7 @@ namespace XCatalogs
             {
                 return string.Format(
                     "{0} {1} {2} {3}",
-                    Path,
+                    FilePath,
                     Data.Length,
                     ((DateTimeOffset)Date).ToUnixTimeSeconds(),
                     GetDataChecksum()
