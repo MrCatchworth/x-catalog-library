@@ -64,8 +64,9 @@ namespace XCatalogs
         {
             var file = new FileInfo(inputPath);
             var inputDirectoryPath = Path.GetDirectoryName(Path.GetFullPath(inputPath));
+            var currentDir = Directory.GetCurrentDirectory();
 
-            if (Directory.GetCurrentDirectory().StartsWith(inputDirectoryPath))
+            if (currentDir.StartsWith(inputDirectoryPath) && currentDir != inputDirectoryPath)
             {
                 throw new ArgumentException("File must not be outside the current directory");
             }
